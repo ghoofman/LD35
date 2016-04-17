@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 2.8)
 
-project(LudumDare34)
+project(LudumDare35)
 
 SET(OPIFEX_ENGINE_REPOSITORY CACHE STRING "../OPengine/")
 
@@ -29,6 +29,9 @@ add_external_opifex_includes()
 
 # Application Source Files
 add_source_group(src "${PROJECT_SOURCE_DIR}/src" APPLICATION_SRC)
+add_source_group(src/game "${PROJECT_SOURCE_DIR}/src/game" APPLICATION_SRC)
+add_source_group(src/game/cards "${PROJECT_SOURCE_DIR}/src/game/cards" APPLICATION_SRC)
+add_asset_dir(APPLICATION_SRC)
 
 # Application BUILD
 if("${OPIFEX_OS}" STREQUAL "OPIFEX_IOS")
@@ -44,7 +47,7 @@ endif()
 
 add_opifex_definitions(9_Application "")
 add_opifex_defines()
-set_target_properties(9_Application PROPERTIES OUTPUT_NAME "LudumDare34")
+set_target_properties(9_Application PROPERTIES OUTPUT_NAME "LudumDare35")
 add_opifex_libraries(9_Application)
 add_opifex_assets(9_Application)
 

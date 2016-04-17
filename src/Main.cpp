@@ -10,13 +10,30 @@
 //////////////////////////////////////
 
 void ApplicationInit() {
+	OP_LOG_LEVEL = 2000;
 	OPloadersAddDefault();
 	OPcmanInit(OPIFEX_ASSETS);
 	OPrenderInit();
+
+	OPfmodInit();
+	OPphysXInit();
+
+	OPgamePadSetDeadZones(0.3);
+
 	OPgameStateChange(&GS_EXAMPLE);
 }
 
-int ApplicationUpdate(OPtimer* timer) {
+OPint ApplicationUpdate(OPtimer* timer) {
+	OPfmodUpdate();
+
+	OPinputSystemUpdate(timer);
+
+#ifdef _DEBUG
+	if (OPkeyboardWasReleased(OPKEY_ESCAPE)) {
+		return 1;
+	}
+#endif
+
 	return ActiveState->Update(timer);
 }
 

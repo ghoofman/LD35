@@ -15,5 +15,5 @@ void main() {
 	vec4 screenPos = uProj * uView * uWorld * vec4(aPosition,1);
 	gl_Position = screenPos;
 	
-	vUV = (aUV * vec2(1.0, -1.0) + vec2(0.0,1.0)) * uSize + uOffset; 
+	vUV = vec2(aUV.x, 1.0 - aUV.y) * uSize + uOffset; 
 }
