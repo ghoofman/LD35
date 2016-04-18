@@ -9,7 +9,7 @@
 
 void PlayerInit(Player * player, OPphysXControllerManager * manager, ui32 gamePad, const OPchar * model, const OPchar * texture)
 {
-	player->deck.Init(20);
+	player->deck.Init(30);
 	//deck.AddCard("Energy.png", EnergyCard, AlwaysAvailable);
 	//deck.AddCard("Energy.png", EnergyCard, AlwaysAvailable);
 	//deck.AddCard("Skel.png", SkelCard, AlwaysAvailable);
@@ -22,23 +22,34 @@ void PlayerInit(Player * player, OPphysXControllerManager * manager, ui32 gamePa
 	//deck.AddCard("Energy.png", EnergyCard, AlwaysAvailable);
 	//deck.AddCard("Energy.png", EnergyCard, AlwaysAvailable);
 	//deck.AddCard("DevilsHowlCard.png", DevilsHowl, DevilsHowlCardAvailable);
-	for (ui32 i = 0; i < 10; i++) {
+	for (ui32 i = 0; i < 20; i++) {
 		player->deck.AddCard(CardEnergy());
+	}
+	for (ui32 i = 0; i < 2; i++) {
+		player->deck.AddCard(CardSkeleton());
 	}
 	for (ui32 i = 0; i < 2; i++) {
 		player->deck.AddCard(CardWolf());
 	}
-	for (ui32 i = 0; i < 1; i++) {
+	for (ui32 i = 0; i < 4; i++) {
 		player->deck.AddCard(CardDevilsHowl());
-	}
-	for (ui32 i = 0; i < 2; i++) {
-		player->deck.AddCard(CardSkeleton());
 	}
 	player->deck.Shuffle();
 
 
 
 	player->character.model.Init(model, texture);
+
+	player->character.skeleton = *OPskeletonCopy((OPskeleton*)OPcmanLoadGet("ld35person.opm.skel"));
+	player->character.idle = *(OPskeletonAnimation*)OPcmanLoadGet("ld35person.opm.Idle.anim");
+	player->character.walk = *(OPskeletonAnimation*)OPcmanLoadGet("ld35person.opm.Walk.anim");
+	player->character.attack = *(OPskeletonAnimation*)OPcmanLoadGet("ld35person.opm.Attack.anim");
+
+	player->character.attack.Loop = 0;
+	player->character.activeAnimation = &player->character.idle;
+
+
+
 	player->material.Init(&EFFECT);
 	player->material.AddParam("uColorTexture", player->character.model.texture);
 
@@ -119,15 +130,15 @@ void PlayerUpdate(Player * player, Scene* scene, OPtimer * timer)
 		player->deck.ActivateCard(&player->character, scene);
 	}
 
-	if (OPgamePadWasReleased(player->controller, OPgamePadButton::OPGAMEPADBUTTON_X) || OPkeyboardWasReleased(OPKEY_R)) {
+	if (OPgamePadWasReleased(player->controller, OPgamePadButton::OPGAMEPADBUTTON_Y) || OPkeyboardWasReleased(OPKEY_R)) {
 		player->deck.KillCard();
 	}
 
-	if (OPgamePadRightThumbNowLeft(player->controller) || OPkeyboardWasReleased(OPKEY_Q) || OPmouseWheelMoved() < 0) {
+	if (OPgamePadRightThumbNowLeft(player->controller) || OPgamePadWasReleased(player->controller, OPgamePadButton::OPGAMEPADBUTTON_X) || OPkeyboardWasReleased(OPKEY_Q) || OPmouseWheelMoved() < 0) {
 		player->deck.PrevCard();
 	}
 
-	if (OPgamePadRightThumbNowRight(player->controller) || OPkeyboardWasReleased(OPKEY_E) || OPmouseWheelMoved() > 0) {
+	if (OPgamePadRightThumbNowRight(player->controller) || OPgamePadWasReleased(player->controller, OPgamePadButton::OPGAMEPADBUTTON_B) || OPkeyboardWasReleased(OPKEY_E) || OPmouseWheelMoved() > 0) {
 		player->deck.NextCard();
 	}
 
@@ -138,10 +149,18 @@ void PlayerUpdate(Player * player, Scene* scene, OPtimer * timer)
 		player->character.canAttack = 1;
 	}
 
+	if (player->character.attackTime > player->character.maxAtackTime) {
+		player->character.activeAnimation = &player->character.walk;
+	}
+
 	if (player->character.canAttack && player->character.attackTime > player->character.maxAtackTime && (OPgamePadRightTrigger(player->controller) > 0.5f) || OPmouseWasPressed(OPMOUSE_LBUTTON)) {
 		player->character.isAttacking = 1;
 		player->character.attackTime = 0;
 		player->character.canAttack = 0;
+		player->character.attack.Frame = 0;
+		player->character.attack.LoopsCompleted = 0;
+		player->character.activeAnimation = &player->character.attack;
+		OPfmodPlay(OPfmodLoad("Audio/woosh.wav"));
 	}
 
 	if (player->character.isAttacking && player->character.attackTime > player->character.maxAtackTime) {
@@ -265,6 +284,14 @@ void PlayerUpdate(Player * player, Scene* scene, OPtimer * timer)
 	// OPvec3 oldPos = player->position;
 	player->character.position = pos;
 
+	if (player->character.activeAnimation != &player->character.attack && player->character.activeAnimation != &player->character.special) {
+		if (OPvec3Len(player->character.velocity) < 0.5) {
+			player->character.activeAnimation = &player->character.idle;
+		}
+		else {
+			player->character.activeAnimation = &player->character.walk;
+		}
+	}
 
 
 	//player->model.model.world.SetTranslate(player->position)->Scl(player->scale)->RotY(player->rotation.y);

@@ -14,11 +14,11 @@ uniform mat4 uView;
 uniform mat4 uProj; 
 uniform vec3 uLightPosition;
 
-out vec2 vTexCoord;
-out vec3 vNormal;
-out vec3 vTangent;
-out vec3 vEyeDirection;
-out vec3 vLightDirection;
+out VS_OUT {
+    vec3 FragPos;
+    vec3 Normal;
+    vec2 TexCoords;
+} vs_out;
 
 void main() {
 	vec4 pos = vec4(aPosition, 1.0);
@@ -55,20 +55,25 @@ void main() {
 	vec4 worldPos = uWorld * newPosition;
 	gl_Position = (uProj * uView) * worldPos; 
 	
-	vTexCoord = aUV; 
+	// vTexCoord = aUV; 
 	
 	mat3 rotScl = mat3(uWorld[0].xyz, uWorld[1].xyz, uWorld[2].xyz); 
 	
 	// Vector that goes from the vertex to the camera, in camera space.
 	// In camera space, the camera is at the origin (0,0,0).
 	vec3 vertexPosition_cameraspace = ( uView * uWorld * vec4(aPosition,1)).xyz;
-	vEyeDirection = vec3(0,0,0) - vertexPosition_cameraspace;
+	//vEyeDirection = vec3(0,0,0) - vertexPosition_cameraspace;
 
 	// Vector that goes from the vertex to the light, in camera space. M is ommited because it's identity.
 	vec3 LightPosition_cameraspace = ( uView * vec4(uLightPosition,1)).xyz;
-	vLightDirection = LightPosition_cameraspace + vEyeDirection;
+	//vLightDirection = LightPosition_cameraspace + vEyeDirection;
 	
-	vNormal = ( uView * uWorld * newNormal).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
+	//vNormal = ( uView * uWorld * newNormal).xyz; // Only correct if ModelMatrix does not scale the model ! Use its inverse transpose if not.
 	
-	vTangent = normalize(rotScl * aTangent); 
+	//vTangent = normalize(rotScl * aTangent); 
+
+
+	vs_out.FragPos = vec3(uWorld * vec4(newPosition.xyz, 1.0));
+    vs_out.Normal = transpose(inverse(mat3(uWorld))) * newNormal.xyz;
+    vs_out.TexCoords = aUV;
 }

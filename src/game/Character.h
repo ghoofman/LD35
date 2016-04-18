@@ -8,6 +8,14 @@ typedef struct Character Character;
 
 struct Character {
 	OPmodelTextured model;
+
+	OPskeleton skeleton;
+	OPskeletonAnimation idle;
+	OPskeletonAnimation walk;
+	OPskeletonAnimation attack;
+	OPskeletonAnimation special;
+	OPskeletonAnimation* activeAnimation;
+
 	OPvec3 position;
 	OPvec3 rotation;
 	OPvec3 scale;

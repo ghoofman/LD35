@@ -8,6 +8,7 @@ extern OPcommandBucket RENDERBUCKET;
 extern OPcommandBucket SHADOW_RENDERBUCKET;
 extern OPeffect EFFECT;
 extern OPeffect SHADOW_EFFECT;
+extern OPeffect SKINNING_EFFECT;
 extern OPmaterial MATERIAL;
 extern OPmaterial SHADOW_MATERIAL;
 extern OPvec3 LIGHTDIRECTION;

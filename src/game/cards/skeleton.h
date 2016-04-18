@@ -8,7 +8,13 @@
 inline i8 CardSkeletonActivate(Character* player, Scene* scene) {
 	if (player->energy >= 2) {
 		player->energy -= 2;
-		player->model.Init("skeleton.opm", "skeleton.png");
+		player->model.Init("ld35skeleton.opm", "skeleton.png");
+		player->skeleton = *OPskeletonCopy((OPskeleton*)OPcmanLoadGet("ld35skeleton.opm.skel"));
+		player->idle = *(OPskeletonAnimation*)OPcmanLoadGet("ld35skeleton.opm.Idle.anim");
+		player->walk = *(OPskeletonAnimation*)OPcmanLoadGet("ld35person.opm.Walk.anim");
+		player->attack = *(OPskeletonAnimation*)OPcmanLoadGet("ld35person.opm.Attack.anim");
+		//player->special = *(OPskeletonAnimation*)OPcmanLoadGet("ld35wolf.opm.Howl.anim");
+		player->activeAnimation = &player->idle;
 		player->damage = 3;
 		player->defense = 1;
 		player->speed = 1;

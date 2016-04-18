@@ -6,6 +6,7 @@ OPcommandBucket RENDERBUCKET;
 OPcommandBucket SHADOW_RENDERBUCKET;
 OPeffect EFFECT;
 OPeffect SHADOW_EFFECT;
+OPeffect SKINNING_EFFECT;
 OPmaterial MATERIAL;
 OPmaterial SHADOW_MATERIAL;
 OPvec3 LIGHTDIRECTION;
@@ -24,6 +25,16 @@ OPshaderAttribute SHADOW_VERTEX_LAYOUT_ATTRIBUTES[1] = {
 	{ "aPosition", GL_FLOAT, 3, 0 }
 };
 OPvertexLayout SHADOW_VERTEX_LAYOUT;
+
+OPshaderAttribute SKINNING_VERTEX_LAYOUT_ATTRIBUTES[] = {
+	{ "aPosition", GL_FLOAT, 3 },
+	{ "aNormal", GL_FLOAT, 3 },
+	//{ "aTangent", GL_FLOAT, 3 },
+	{ "aUV", GL_FLOAT, 2 },
+	{ "aBlendIndices", GL_FLOAT, 4 },
+	{ "aBlendWeights", GL_FLOAT, 4 }
+};
+OPvertexLayout SKINNING_VERTEX_LAYOUT;
 
 i8 GLOBAL_LOADED = 0;
 
@@ -63,6 +74,8 @@ void GlobalInit()
 
 	OPvertexLayoutInit(&SHADOW_VERTEX_LAYOUT, SHADOW_VERTEX_LAYOUT_ATTRIBUTES, 1);
 
+	OPvertexLayoutInit(&SKINNING_VERTEX_LAYOUT, SKINNING_VERTEX_LAYOUT_ATTRIBUTES, 5);
+
 
 	EFFECT.Init("Common/TexturedShadow.vert", "Common/TexturedShadow.frag", &TEXTURED_VERTEX_LAYOUT);
 	MATERIAL.Init(&EFFECT);
@@ -92,4 +105,27 @@ void GlobalInit()
 
 
 	FONTMANAGER = OPfontManagerSetup("Ubuntu.opf", NULL, 0);
+
+
+
+
+	OPshaderAttribute attribs[] = {
+		{ "aPosition", GL_FLOAT, 3 },
+		{ "aNormal", GL_FLOAT, 3 },
+		//{ "aTangent", GL_FLOAT, 3 },
+		{ "aUV", GL_FLOAT, 2 },
+		{ "aBlendIndices", GL_FLOAT, 4 },
+		{ "aBlendWeights", GL_FLOAT, 4 }
+	};
+
+	vert = (OPshader*)OPcmanLoadGet("Skinning.vert");
+	frag = (OPshader*)OPcmanLoadGet("Skinning.frag");
+	SKINNING_EFFECT = OPeffectCreate(
+		*vert,
+		*frag,
+		attribs,
+		5,
+		"Model Effect",
+		SKINNING_VERTEX_LAYOUT.stride
+	);
 }

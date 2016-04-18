@@ -36,6 +36,13 @@ struct Card {
 			OPtexture2DRender(UNAVILABLECARD);
 		}
 	}
+
+	void RenderForMenu(f32 placement, ui8 activeCard) {
+
+		tex2d->Position = OPvec2Create(placement, 0);
+		tex2d->Scale = OPvec2Create(0.25 + activeCard * 0.25, 0.25 + activeCard * 0.25);
+		OPtexture2DRender(tex2d);
+	}
 };
 
 

@@ -18,6 +18,8 @@ void SceneInit(Scene* result) {
 	result->physXManager = OPphysXControllerCreateManager(result->physXScene);
 	OPphysXDebugger("127.0.0.1");
 
+	result->winner = 0;
+
 	result->staticEntitiesCount = 0;
 	result->staticEntitiesMax = 16;
 	result->staticEntities = (OPmodelTextured*)OPalloc(sizeof(OPmodelTextured) * result->staticEntitiesMax);
@@ -29,11 +31,45 @@ void SceneInit(Scene* result) {
 	result->playerCount = 0;
 
 
-	PxTransform transform = PxTransform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
-	OPphysXMaterial* material = OPphysXCreateMaterial(0.8, 0.8, 0.6);
-	OPphysXRigidStatic* plane = OPphysXSceneCreateStatic(result->physXScene, transform);
-	OPphysXAddPlaneShape(plane, material);
-	OPphysXSceneAddActor(result->physXScene, plane);
+	{
+		PxTransform transform = PxTransform(PxVec3(0.0f, 0.0f, 0.0f), PxQuat(PxHalfPi, PxVec3(0.0f, 0.0f, 1.0f)));
+		OPphysXMaterial* material = OPphysXCreateMaterial(0.8, 0.8, 0.6);
+		OPphysXRigidStatic* plane = OPphysXSceneCreateStatic(result->physXScene, transform);
+		OPphysXAddPlaneShape(plane, material);
+		OPphysXSceneAddActor(result->physXScene, plane);
+	}
+
+	{
+		PxTransform transform = PxTransform(PxVec3(-250.0f, 0.0f, 0.0f), PxQuat(0, PxVec3(1.0f, 0.0f, 0.0f)));
+		OPphysXMaterial* material = OPphysXCreateMaterial(0.8, 0.8, 0.6);
+		OPphysXRigidStatic* plane = OPphysXSceneCreateStatic(result->physXScene, transform);
+		OPphysXAddPlaneShape(plane, material);
+		OPphysXSceneAddActor(result->physXScene, plane);
+	}
+
+	{
+		PxTransform transform = PxTransform(PxVec3(250.0f, 0.0f, 0.0f), PxQuat(PxPi, PxVec3(0.0f, 1.0f, 0.0f)));
+		OPphysXMaterial* material = OPphysXCreateMaterial(0.8, 0.8, 0.6);
+		OPphysXRigidStatic* plane = OPphysXSceneCreateStatic(result->physXScene, transform);
+		OPphysXAddPlaneShape(plane, material);
+		OPphysXSceneAddActor(result->physXScene, plane);
+	}
+
+	{
+		PxTransform transform = PxTransform(PxVec3(0.0f, 0.0f, 250.0f), PxQuat(PxHalfPi, PxVec3(0.0f, 1.0f, 0.0f)));
+		OPphysXMaterial* material = OPphysXCreateMaterial(0.8, 0.8, 0.6);
+		OPphysXRigidStatic* plane = OPphysXSceneCreateStatic(result->physXScene, transform);
+		OPphysXAddPlaneShape(plane, material);
+		OPphysXSceneAddActor(result->physXScene, plane);
+	}
+
+	{
+		PxTransform transform = PxTransform(PxVec3(0.0f, 0.0f, -250.0f), PxQuat(-PxHalfPi, PxVec3(0.0f, 1.0f, 0.0f)));
+		OPphysXMaterial* material = OPphysXCreateMaterial(0.8, 0.8, 0.6);
+		OPphysXRigidStatic* plane = OPphysXSceneCreateStatic(result->physXScene, transform);
+		OPphysXAddPlaneShape(plane, material);
+		OPphysXSceneAddActor(result->physXScene, plane);
+	}
 
 
 	//result->p1gui = OPtexture2DCreate((OPtexture*)OPcmanLoadGet("P1GUI.png"));
@@ -179,12 +215,26 @@ void SceneUpdate(Scene* scene, OPtimer* timer) {
 	// Update the physics of each player
 	for (ui32 i = 0; i < scene->playerCount; i++) {
 		scene->players[i].Update(timer, scene);
+
+		if (scene->players[i].character.activeAnimation != NULL) {
+
+			OPskeletonAnimationUpdate(scene->players[i].character.activeAnimation, timer);
+			OPskeletonAnimationApply(scene->players[i].character.activeAnimation, &scene->players[i].character.skeleton);
+			OPskeletonUpdate(&scene->players[i].character.skeleton);
+		}
 	}
 
 	for (ui32 i = 0; i < scene->enemyCount; i++) {
 		if (scene->enemies[i].character.health <= 0) {
 			scene->enemyCount--;
 			break;
+		}
+
+		if (scene->enemies[i].character.activeAnimation != NULL) {
+
+			OPskeletonAnimationUpdate(scene->enemies[i].character.activeAnimation, timer);
+			OPskeletonAnimationApply(scene->enemies[i].character.activeAnimation, &scene->enemies[i].character.skeleton);
+			OPskeletonUpdate(&scene->enemies[i].character.skeleton);
 		}
 		scene->enemies[i].Update(timer, scene);
 	}
@@ -282,12 +332,26 @@ void SceneUpdate(Scene* scene, OPtimer* timer) {
 		}
 	}
 
+	if (scene->playerCount + scene->enemyCount <= 1) {
+		// Only 1 player left, declare the winner
+		if (scene->enemyCount > scene->playerCount) {
+			scene->winner = 2;
+			OPfmodPlay(OPfmodLoad("Audio/lost.wav"));
+		}
+		else if (scene->playerCount > scene->enemyCount) {
+			scene->winner = 1;
+			OPfmodPlay(OPfmodLoad("Audio/win.wav"));
+		}
+	}
+
 
 
 	CAMERA.target = scene->players[0].character.position;
 	//CAMERA.pos = scene->players[0].position;
 	//CAMERA.pos += OPvec3Create(0, 1000, 1000);
 	CAMERA.Update();
+
+
 }
 
 void Scene::RenderShadows(OPfloat delta) {
@@ -312,16 +376,62 @@ void Scene::Render(OPfloat delta) {
 		RENDERBUCKET.CreateDrawIndexedSubmit(&staticEntities[i], &MATERIAL);
 	}
 
+	RENDERBUCKET.Render();
+
 	for (ui32 i = 0; i < playerCount; i++) {
 		players[i].UpdateWorld(delta);
-		RENDERBUCKET.CreateDrawIndexedSubmit(&players[i].character.model, &MATERIAL);
+		if (players[i].character.activeAnimation != NULL) {
+
+			OPmeshBind(players[i].character.model.model.mesh);
+			OPeffectBind(&SKINNING_EFFECT);
+
+			//OPmat4 world;
+			//OPmat4Identity(&world);
+			//OPmat4BuildRotX(&world,- OPpi / 2.0);
+
+			OPeffectParamMat4("uWorld", &players[i].character.model.model.world);
+			OPeffectParamMat4("uView", &CAMERA.view);
+			OPeffectParamMat4("uProj", &CAMERA.proj);
+
+			OPeffectParamMat4v("uBones", players[i].character.skeleton.hierarchyCount, players[i].character.skeleton.skinned);
+
+			OPvec3 light = OPvec3Create(0, 10, 0);
+			OPeffectParamVec3("uLightPosition", &light);
+
+			OPtextureClearActive();
+			OPeffectParami("uColorTexture", OPtextureBind(players[i].character.model.texture));
+
+			OPmeshRender();
+		}
+		//RENDERBUCKET.CreateDrawIndexedSubmit(&players[i].character.model, &MATERIAL);
 	}
 
 	for (ui32 i = 0; i < enemyCount; i++) {
-		RENDERBUCKET.CreateDrawIndexedSubmit(&enemies[i].character.model, &MATERIAL);
-	}
+		if (enemies[i].character.activeAnimation != NULL) {
 
-	RENDERBUCKET.Render();
+			OPmeshBind(enemies[i].character.model.model.mesh);
+			OPeffectBind(&SKINNING_EFFECT);
+
+			//OPmat4 world;
+			//OPmat4Identity(&world);
+			//OPmat4BuildRotX(&world,- OPpi / 2.0);
+
+			OPeffectParamMat4("uWorld", &enemies[i].character.model.model.world);
+			OPeffectParamMat4("uView", &CAMERA.view);
+			OPeffectParamMat4("uProj", &CAMERA.proj);
+
+			OPeffectParamMat4v("uBones", enemies[i].character.skeleton.hierarchyCount, enemies[i].character.skeleton.skinned);
+
+			OPvec3 light = OPvec3Create(0, 10, 0);
+			OPeffectParamVec3("uLightPosition", &light);
+
+			OPtextureClearActive();
+			OPeffectParami("uColorTexture", OPtextureBind(enemies[i].character.model.texture));
+
+			OPmeshRender();
+		}
+		//RENDERBUCKET.CreateDrawIndexedSubmit(&enemies[i].character.model, &MATERIAL);
+	}
 
 	i8 dir = 1;
 	for (ui32 j = 0; j < playerCount; j++) {
@@ -341,18 +451,26 @@ void Scene::Render(OPfloat delta) {
 		}
 	}
 
+	OPrenderDepth(0);
+	OPtexturePixelate();
+	OPspriteSystemRender(&spriteSystemBars, &camera);
+	OPspriteSystemRender(&spriteSystem, &camera);
+
 	OPfontRenderBegin(FONTMANAGER);
 	for (ui32 i = 0; i < playerCount; i++) {
 		if (i == 1) {
 
+			itoa(players[i].character.energy, buff, 10);
 			OPfontManagerSetAlign(OPfontAlign::OPFONT_ALIGN_CENTER);
 			FONTMANAGER->scale = 0.3;
 			OPfontManagerSetColor(OPvec3Create(1, 1, 0));
 			OPfontRender(buff, OPvec2Create(OPRENDER_SCREEN_WIDTH - 57, 85));
 			OPfontManagerSetColor(OPvec3Create(1, 1, 1));
 			FONTMANAGER->scale = 1.0;
-		} else {
+		}
+		else {
 
+			itoa(players[i].character.energy, buff, 10);
 			OPfontManagerSetAlign(OPfontAlign::OPFONT_ALIGN_CENTER);
 			FONTMANAGER->scale = 0.3;
 			OPfontManagerSetColor(OPvec3Create(1, 1, 0));
@@ -365,6 +483,7 @@ void Scene::Render(OPfloat delta) {
 	OPfontManagerSetAlign(OPfontAlign::OPFONT_ALIGN_RIGHT);
 	for (ui32 i = 0; i < enemyCount; i++) {
 
+		itoa(enemies[i].character.energy, buff, 10);
 		OPfontManagerSetAlign(OPfontAlign::OPFONT_ALIGN_CENTER);
 		FONTMANAGER->scale = 0.3;
 		OPfontManagerSetColor(OPvec3Create(1, 1, 0));
@@ -374,9 +493,4 @@ void Scene::Render(OPfloat delta) {
 	}
 
 	OPfontRenderEnd();
-
-	OPrenderDepth(0);
-	OPtexturePixelate();
-	OPspriteSystemRender(&spriteSystemBars, &camera);
-	OPspriteSystemRender(&spriteSystem, &camera);
 }

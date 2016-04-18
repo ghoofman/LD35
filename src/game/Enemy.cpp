@@ -37,6 +37,12 @@ void EnemyInit(Enemy* enemy, OPphysXControllerManager* manager, const OPchar* mo
 
 
 	enemy->character.model.Init(model, texture);
+	enemy->character.skeleton = *OPskeletonCopy((OPskeleton*)OPcmanLoadGet("ld35person.opm.skel"));
+	enemy->character.idle = *(OPskeletonAnimation*)OPcmanLoadGet("ld35person.opm.Take 001.anim");
+	enemy->character.walk = *(OPskeletonAnimation*)OPcmanLoadGet("ld35person.opm.Walk.anim");
+	enemy->character.attack = *(OPskeletonAnimation*)OPcmanLoadGet("ld35person.opm.Attack.anim");
+	enemy->character.activeAnimation = &enemy->character.idle;
+
 	enemy->character.position = OPvec3Create(100, 0, 0);
 	enemy->character.rotation = OPVEC3_ZERO;
 	enemy->character.scale = OPVEC3_ONE;
@@ -163,6 +169,11 @@ void EnemyUpdate(Enemy* enemy, Scene* scene, OPtimer* timer) {
 
 	enemy->character.attackTime += timer->Elapsed;
 
+	if (enemy->character.attackTime > enemy->character.maxAtackTime) {
+		enemy->character.activeAnimation = &enemy->character.walk;
+	}
+
+
 	if (enemy->character.attackTime > enemy->character.maxAtackTime ) {
 
 		// We can attack, see if there's a player within range
@@ -177,6 +188,8 @@ void EnemyUpdate(Enemy* enemy, Scene* scene, OPtimer* timer) {
 				enemy->character.isAttacking = 1;
 				enemy->character.attackTime = 0;
 				enemy->character.canAttack = 0;
+				enemy->character.activeAnimation = &enemy->character.attack;
+				OPfmodPlay(OPfmodLoad("Audio/woosh.wav"));
 			}
 		}
 	}
@@ -285,4 +298,13 @@ void EnemyUpdate(Enemy* enemy, Scene* scene, OPtimer* timer) {
 	enemy->character.position = pos;
 
 	enemy->character.model.model.world.SetTranslate(enemy->character.position)->Scl(enemy->character.scale)->RotY(enemy->character.rotation.y);
+
+	if (enemy->character.activeAnimation != &enemy->character.attack && enemy->character.activeAnimation != &enemy->character.special) {
+		if (OPvec3Len(enemy->character.velocity) < 0.5) {
+			enemy->character.activeAnimation = &enemy->character.idle;
+		}
+		else {
+			enemy->character.activeAnimation = &enemy->character.walk;
+		}
+	}
 }

@@ -8,10 +8,18 @@
 inline i8 CardWolfActivate(Character* player, Scene* scene) {
 	if (player->energy >= 5) {
 		player->energy -= 5;
-		player->model.Init("wolf.opm", "wolf.png");
+		player->model.Init("ld35wolf.opm", "wolf.png");
+		player->skeleton = *OPskeletonCopy((OPskeleton*)OPcmanLoadGet("ld35wolf.opm.skel"));
+		player->idle = *(OPskeletonAnimation*)OPcmanLoadGet("ld35wolf.opm.Idle.anim");
+		player->walk = *(OPskeletonAnimation*)OPcmanLoadGet("ld35wolf.opm.Walk.anim");
+		player->attack = *(OPskeletonAnimation*)OPcmanLoadGet("ld35wolf.opm.Attack.anim");
+		player->special = *(OPskeletonAnimation*)OPcmanLoadGet("ld35wolf.opm.Howl.anim");
+		player->special.Loop = 0;
+
+		player->activeAnimation = &player->idle;
 		player->damage = 10;
 		player->defense = 1;
-		player->speed = 3;
+		player->speed = 3 * 2;
 		player->form = 1;
 		return 1;
 	}

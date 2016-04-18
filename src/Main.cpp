@@ -12,6 +12,8 @@
 void ApplicationInit() {
 	OP_LOG_LEVEL = 2000;
 	OPloadersAddDefault();
+	OPskeletonAddLoader();
+	OPskeletonAnimationAddLoader();
 	OPcmanInit(OPIFEX_ASSETS);
 	OPrenderInit();
 

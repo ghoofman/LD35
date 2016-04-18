@@ -27,6 +27,7 @@ struct Scene {
 	ui32 staticEntitiesMax;
 	OPmodelTextured* staticEntities;
 
+	i8 winner;
 
 	ui32 playerCount;
 	Player players[MAX_PLAYERS];
