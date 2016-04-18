@@ -27,6 +27,9 @@ Start 		- Enter 	/ Start
 Credits
 -------------------------------------
 Garrett Hoofman
+
 Twitter: @ghoofman
+
 Website: http://www.teamopifex.com
+
 Engine: http://opengine.io
