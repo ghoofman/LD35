@@ -42,7 +42,7 @@ if("${OPIFEX_OS}" STREQUAL "OPIFEX_IOS")
     endif()
     output_library_from_app(9_Application "LudumDare34")
 else()
-    add_executable(9_Application ${APPLICATION_SRC})
+    add_opifex_executable(9_Application ${APPLICATION_SRC})
 endif()
 
 add_opifex_definitions(9_Application "")
