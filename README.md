@@ -16,11 +16,17 @@ Controls
 [Action] 	- [Keyboard/Mouse] / [Gamepad]
 
 Move 		- WASD 		/ Left Thumbstick
+
 Next Card 	- E 		/ B
+
 Prev Card 	- Q 		/ X or Right Thumbstick
+
 Discard 	- R 		/ Y
+
 Play Card 	- Right Click 	/ A
+
 Attack 		- Left Click 	/ Right Trigger
+
 Start 		- Enter 	/ Start
 
 
